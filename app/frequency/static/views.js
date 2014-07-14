@@ -73,7 +73,9 @@ App.FrequencyResultView = Backbone.View.extend({
 App.FrequencyResultComparisonView = Backbone.View.extend({
     config: {
         // Use sizeRange() to read, might be dynamic in the future
-        sizeRange: { min: 10, max: 48 }
+        sizeRange: { min: 10, max: 36 }
+        , height: 400
+        , padding: 10
     },
     template: _.template($('#tpl-frequency-result-comparison-view').html()),
     initialize: function (options) {
@@ -119,15 +121,19 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         this.centerExtent = d3.extent(this.center, function (d) { return d.tfnorm; })
     },
     render: function () {
+        var that = this;
         this.updateStats();
         this.$el.html(this.template());
-        this.renderHtml();
+        this.$('.content-text').hide();
+        _.defer(function () { that.renderSvg(); });
     },
     sizeRange: function () {
         return this.config.sizeRange;
     },
-    fontSize: function (term, extent) {
-        var sizeRange = this.sizeRange();
+    fontSize: function (term, extent, sizeRange) {
+        if (typeof(sizeRange) === 'undefined') {
+            sizeRange = this.sizeRange();
+        }
         var size = sizeRange.min
             + (sizeRange.max - sizeRange.min)
                 * ( Math.log(term.tfnorm) - Math.log(extent[0]) )
@@ -167,5 +173,60 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
                 })
                 .style('font-weight', 'bold')
                 .text(function (d) { return d.term + ' '; });
+    },
+    renderSvg: function () {
+        var container = d3.select(this.el).select('.content-viz');
+        var width = this.$('.content-viz').width();
+        var innerWidth = width/3.0 - 2*this.config.padding;
+        var svg = container.append('svg')
+            .attr('height', this.config.height)
+            .attr('width', width);
+        var leftGroup = svg.append('g').classed('left-group', true)
+            .attr('transform', 'translate('+this.config.padding+')');
+        var intersectGroup = svg.append('g').classed('intersect-group', true)
+            .attr('transform', 'translate('+(innerWidth+this.config.padding)+')');
+        var rightGroup = svg.append('g').classed('right-group', true)
+            .attr('transform', 'translate('+(2.0*innerWidth+this.config.padding)+')');
+        console.log(width/3.0);
+        var y = this.config.height;
+        var sizeRange = this.sizeRange();
+        while (y >= this.config.height && sizeRange.max > sizeRange.min) {
+            y = 0;
+            y = Math.max(y, this.renderSvgList(leftGroup, this.left, innerWidth, this.leftExtent, sizeRange));
+            y = Math.max(y, this.renderSvgList(intersectGroup, this.center, innerWidth, this.centerExtent, sizeRange));
+            y = Math.max(y, this.renderSvgList(rightGroup, this.right, innerWidth, this.rightExtent, sizeRange));
+            sizeRange.max = sizeRange.max - 1;
+        }
+    },
+    renderSvgList: function (group, data, width, extent, sizeRange) {
+        var that = this;
+        // Create words
+        var words = group.selectAll('.word').data(data, function (d) { return d.stem; }).enter()
+            .append('text').classed('word', true)
+                .text(function (d) { return d.term; })
+                .attr('font-size', function (d) { return that.fontSize(d, extent, sizeRange); })
+                .attr('font-weight', 'bold');
+        // Layout
+        var x = 0;
+        words.attr('x', function (d) {
+            var textLength = this.getComputedTextLength();
+            var fs = that.fontSize(d, extent, sizeRange);
+            var lastX = x;
+            if (x + textLength + that.config.padding > width) {
+                lastX = 0;
+            }
+            x = lastX + textLength + 0.3*fs;
+            return lastX;
+        });
+        var y = 0;
+        var lastAdded = 0;
+        words.attr('y', function (d) {
+            if (d3.select(this).attr('x') == 0) {
+                y += 1.5 * that.fontSize(d, extent, sizeRange);
+                lastAdded = 1.5 * that.fontSize(d, extent, sizeRange);
+            }
+            return y;
+        });
+        return y + lastAdded;
     }
 });
