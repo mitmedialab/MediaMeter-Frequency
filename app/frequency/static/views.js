@@ -76,6 +76,7 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         sizeRange: { min: 10, max: 36 }
         , height: 400
         , padding: 10
+        , linkColor: "#428bca"
     },
     template: _.template($('#tpl-frequency-result-comparison-view').html()),
     initialize: function (options) {
@@ -128,7 +129,7 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         _.defer(function () { that.renderSvg(); });
     },
     sizeRange: function () {
-        return this.config.sizeRange;
+        return _.clone(this.config.sizeRange);
     },
     fontSize: function (term, extent, sizeRange) {
         if (typeof(sizeRange) === 'undefined') {
@@ -188,28 +189,28 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
             .attr('transform', 'translate('+(innerWidth+this.config.padding)+')');
         var rightGroup = svg.append('g').classed('right-group', true)
             .attr('transform', 'translate('+(2.0*innerWidth+this.config.padding)+')');
-        console.log(width/3.0);
         var y = this.config.height;
         var sizeRange = this.sizeRange();
+        var leftWords, rightWords, intersectWords;
         while (y >= this.config.height && sizeRange.max > sizeRange.min) {
             // Create words
-            var leftWords = leftGroup.selectAll('.word')
+            leftWords = leftGroup.selectAll('.word')
                 .data(this.left, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true)
+                    .append('text').classed('word', true).classed('left', true)
                         .text(function (d) { return d.term; })
                         .attr('font-size', function (d) {
                             return that.fontSize(d, that.leftExtent, sizeRange); })
                         .attr('font-weight', 'bold');
-            var rightWords = rightGroup.selectAll('.word')
+            rightWords = rightGroup.selectAll('.word')
                 .data(this.right, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true)
+                    .append('text').classed('word', true).classed('right', true)
                         .text(function (d) { return d.term; })
                         .attr('font-size', function (d) {
                             return that.fontSize(d, that.rightExtent, sizeRange); })
                         .attr('font-weight', 'bold');
-            var intersectWords = intersectGroup.selectAll('.word')
+            intersectWords = intersectGroup.selectAll('.word')
                 .data(this.center, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true)
+                    .append('text').classed('word', true).classed('intersect', true)
                         .text(function (d) { return d.term; })
                         .attr('font-size', function (d) {
                             return that.fontSize(d, that.centerExtent, sizeRange); })
@@ -221,6 +222,34 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
             y = Math.max(y, this.listCloudLayout(rightWords, innerWidth, this.rightExtent, sizeRange));
             sizeRange.max = sizeRange.max - 1;
         }
+        d3.selectAll('.word')
+            .on('mouseover', function () {
+                d3.select(this).attr('fill', that.config.linkColor);
+            })
+            .on('mouseout', function () {
+                d3.select(this).attr('fill', '#000');
+            });
+        d3.selectAll('.left.word')
+            .on('click', function (d) {
+                that.collection.refine.trigger('mm:refine', {
+                    term: d.term
+                    , query: 0
+                });
+            });
+        d3.selectAll('.right.word')
+            .on('click', function (d) {
+                that.collection.refine.trigger('mm:refine', {
+                    term: d.term
+                    , query: 1
+                });
+            });
+        d3.selectAll('.intersect.word')
+            .on('click', function (d) {
+                that.collection.refine.trigger('mm:refine', {
+                    term: d.term
+                    , query: 1
+                });
+            });
     },
     listCloudLayout: function (words, width, extent, sizeRange) {
         var that = this;
