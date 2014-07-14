@@ -175,6 +175,7 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
                 .text(function (d) { return d.term + ' '; });
     },
     renderSvg: function () {
+        var that = this;
         var container = d3.select(this.el).select('.content-viz');
         var width = this.$('.content-viz').width();
         var innerWidth = width/3.0 - 2*this.config.padding;
@@ -191,22 +192,38 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         var y = this.config.height;
         var sizeRange = this.sizeRange();
         while (y >= this.config.height && sizeRange.max > sizeRange.min) {
+            // Create words
+            var leftWords = leftGroup.selectAll('.word')
+                .data(this.left, function (d) { return d.stem; }).enter()
+                    .append('text').classed('word', true)
+                        .text(function (d) { return d.term; })
+                        .attr('font-size', function (d) {
+                            return that.fontSize(d, that.leftExtent, sizeRange); })
+                        .attr('font-weight', 'bold');
+            var rightWords = rightGroup.selectAll('.word')
+                .data(this.right, function (d) { return d.stem; }).enter()
+                    .append('text').classed('word', true)
+                        .text(function (d) { return d.term; })
+                        .attr('font-size', function (d) {
+                            return that.fontSize(d, that.rightExtent, sizeRange); })
+                        .attr('font-weight', 'bold');
+            var intersectWords = intersectGroup.selectAll('.word')
+                .data(this.center, function (d) { return d.stem; }).enter()
+                    .append('text').classed('word', true)
+                        .text(function (d) { return d.term; })
+                        .attr('font-size', function (d) {
+                            return that.fontSize(d, that.centerExtent, sizeRange); })
+                        .attr('font-weight', 'bold');
+            // Layout
             y = 0;
-            y = Math.max(y, this.renderSvgList(leftGroup, this.left, innerWidth, this.leftExtent, sizeRange));
-            y = Math.max(y, this.renderSvgList(intersectGroup, this.center, innerWidth, this.centerExtent, sizeRange));
-            y = Math.max(y, this.renderSvgList(rightGroup, this.right, innerWidth, this.rightExtent, sizeRange));
+            y = Math.max(y, this.listCloudLayout(leftWords, innerWidth, this.leftExtent, sizeRange));
+            y = Math.max(y, this.listCloudLayout(intersectWords, innerWidth, this.centerExtent, sizeRange));
+            y = Math.max(y, this.listCloudLayout(rightWords, innerWidth, this.rightExtent, sizeRange));
             sizeRange.max = sizeRange.max - 1;
         }
     },
-    renderSvgList: function (group, data, width, extent, sizeRange) {
+    listCloudLayout: function (words, width, extent, sizeRange) {
         var that = this;
-        // Create words
-        var words = group.selectAll('.word').data(data, function (d) { return d.stem; }).enter()
-            .append('text').classed('word', true)
-                .text(function (d) { return d.term; })
-                .attr('font-size', function (d) { return that.fontSize(d, extent, sizeRange); })
-                .attr('font-weight', 'bold');
-        // Layout
         var x = 0;
         words.attr('x', function (d) {
             var textLength = this.getComputedTextLength();
