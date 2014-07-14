@@ -195,29 +195,30 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         while (y >= this.config.height && sizeRange.max > sizeRange.min) {
             // Create words
             leftWords = leftGroup.selectAll('.word')
-                .data(this.left, function (d) { return d.stem; })
+                .data(this.left, function (d) { return d.stem; });
             leftWords.enter()
                 .append('text').classed('word', true).classed('left', true)
-                    .text(function (d) { return d.term; })
-                    .attr('font-size', function (d) {
-                        return that.fontSize(d, that.leftExtent, sizeRange); })
-                    .attr('font-weight', 'bold');
+                .attr('font-size', function (d) {
+                    return that.fontSize(d, that.leftExtent, sizeRange); });
             rightWords = rightGroup.selectAll('.word')
                 .data(this.right, function (d) { return d.stem; });
             rightWords.enter()
                 .append('text').classed('word', true).classed('right', true)
-                    .text(function (d) { return d.term; })
-                    .attr('font-size', function (d) {
-                        return that.fontSize(d, that.rightExtent, sizeRange); })
-                    .attr('font-weight', 'bold');
+                .attr('font-size', function (d) {
+                    return that.fontSize(d, that.rightExtent, sizeRange); });
             intersectWords = intersectGroup.selectAll('.word')
                 .data(this.center, function (d) { return d.stem; });
             intersectWords.enter()
                 .append('text').classed('word', true).classed('intersect', true)
-                    .text(function (d) { return d.term; })
-                    .attr('font-size', function (d) {
-                        return that.fontSize(d, that.centerExtent, sizeRange); })
-                    .attr('font-weight', 'bold');
+                .attr('font-size', function (d) {
+                    return that.fontSize(d, that.centerExtent, sizeRange); });
+            d3.selectAll('.word')
+                .text(function (d) { return d.term; })
+                .attr('font-weight', 'bold');
+            d3.selectAll('.left.word')
+                .attr('fill', App.config.queryColors[0]);
+            d3.selectAll('.right.word')
+                .attr('fill', App.config.queryColors[1]);
             // Layout
             y = 0;
             y = Math.max(y, this.listCloudLayout(leftWords, innerWidth, this.leftExtent, sizeRange));
@@ -230,7 +231,14 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
                 d3.select(this).attr('fill', that.config.linkColor);
             })
             .on('mouseout', function () {
-                d3.select(this).attr('fill', '#000');
+                var color = '#000';
+                if (d3.select(this).classed('left')) {
+                    color = App.config.queryColors[0];
+                }
+                if (d3.select(this).classed('right')) {
+                    color = App.config.queryColors[1];
+                }
+                d3.select(this).attr('fill', color);
             });
         d3.selectAll('.left.word')
             .on('click', function (d) {

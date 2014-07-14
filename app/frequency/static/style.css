@@ -1,0 +1,19 @@
+/* Brand Style ****************************************************************/
+
+.brand-toolbar {
+    background: rgb(60,154,148) !important;
+    color: #fff;
+}
+.branding {
+    background: rgb(85,134,138) !important;
+    color: #fff;
+}
+.app-toolbar {
+    background: #813f1f;
+    color: #e14c11;
+}
+.btn-primary {
+    background: rgb(85,134,138) !important;
+    color: #fff;
+}
+
