@@ -195,26 +195,29 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         while (y >= this.config.height && sizeRange.max > sizeRange.min) {
             // Create words
             leftWords = leftGroup.selectAll('.word')
-                .data(this.left, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true).classed('left', true)
-                        .text(function (d) { return d.term; })
-                        .attr('font-size', function (d) {
-                            return that.fontSize(d, that.leftExtent, sizeRange); })
-                        .attr('font-weight', 'bold');
+                .data(this.left, function (d) { return d.stem; })
+            leftWords.enter()
+                .append('text').classed('word', true).classed('left', true)
+                    .text(function (d) { return d.term; })
+                    .attr('font-size', function (d) {
+                        return that.fontSize(d, that.leftExtent, sizeRange); })
+                    .attr('font-weight', 'bold');
             rightWords = rightGroup.selectAll('.word')
-                .data(this.right, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true).classed('right', true)
-                        .text(function (d) { return d.term; })
-                        .attr('font-size', function (d) {
-                            return that.fontSize(d, that.rightExtent, sizeRange); })
-                        .attr('font-weight', 'bold');
+                .data(this.right, function (d) { return d.stem; });
+            rightWords.enter()
+                .append('text').classed('word', true).classed('right', true)
+                    .text(function (d) { return d.term; })
+                    .attr('font-size', function (d) {
+                        return that.fontSize(d, that.rightExtent, sizeRange); })
+                    .attr('font-weight', 'bold');
             intersectWords = intersectGroup.selectAll('.word')
-                .data(this.center, function (d) { return d.stem; }).enter()
-                    .append('text').classed('word', true).classed('intersect', true)
-                        .text(function (d) { return d.term; })
-                        .attr('font-size', function (d) {
-                            return that.fontSize(d, that.centerExtent, sizeRange); })
-                        .attr('font-weight', 'bold');
+                .data(this.center, function (d) { return d.stem; });
+            intersectWords.enter()
+                .append('text').classed('word', true).classed('intersect', true)
+                    .text(function (d) { return d.term; })
+                    .attr('font-size', function (d) {
+                        return that.fontSize(d, that.centerExtent, sizeRange); })
+                    .attr('font-weight', 'bold');
             // Layout
             y = 0;
             y = Math.max(y, this.listCloudLayout(leftWords, innerWidth, this.leftExtent, sizeRange));
