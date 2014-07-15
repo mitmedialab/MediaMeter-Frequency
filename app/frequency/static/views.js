@@ -9,7 +9,7 @@ App.FrequencyResultListView = App.NestedView.extend({
         App.debug('App.FrequencyResultListView.render()');
         this.$el.html('');
         this.collection.each(function (m) {
-            var view = this.getResultView(m.get('results'));
+            var view = this.getResultView(m);
             this.$el.append(view.el);
         }, this);
         this.listenTo(
@@ -51,17 +51,25 @@ App.FrequencyResultView = Backbone.View.extend({
         this.$el.html(this.template());
         var progress = _.template($('#tpl-progress').html())();
         this.$('.content-text').html(progress);
-        this.listenTo(this.model.get('wordcounts'), 'request', function () {
+        this.listenTo(this.model.get('results').get('wordcounts'), 'request', function () {
             App.debug('Model Request');
             this.$('.content-text').show();
             this.$('.content-viz').hide();
         });
         this.listenTo(
-            this.model
+            this.model.get('results')
             , 'sync'
             , function () {
                 App.debug('App.FrequencyResultView:sync:' + this.cid);
-                var view = new App.WordCountResultView({collection:this.model.get('wordcounts')});
+                var view = new App.WordCountResultView({
+                    collection: this.model.get('results').get('wordcounts')
+                });
+                this.listenTo(view, 'mm:refine', function (options) {
+                    this.model.refine.trigger('mm:refine', {
+                        term: options.term
+                        , queryCid: this.model.cid
+                    });
+                });
                 this.$('.content-viz').html(view.el);
                 this.$('.content-viz').show();
                 this.$('.content-text').hide();
