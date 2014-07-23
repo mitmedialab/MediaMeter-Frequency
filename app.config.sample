@@ -6,10 +6,10 @@ database = my_db
 key = MY_API_KEY
 
 [custom]
-modules = app.dashboard
+modules = app.frequency
 
 [flask]
-template = dashboard/main.html
+template = frequency/main.html
 
 [threading]
 num_threads = 0
