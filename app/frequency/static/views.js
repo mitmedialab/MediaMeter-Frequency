@@ -19,6 +19,7 @@ App.FrequencyResultListView = App.NestedView.extend({
                 if (this.collection.length < 2) {
                     return;
                 }
+                // add in the columnar comparison view if we have two queries
                 if (this.comparisonView) {
                     this.comparisonView.remove();
                 }
