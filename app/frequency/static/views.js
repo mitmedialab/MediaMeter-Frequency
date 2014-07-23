@@ -53,8 +53,6 @@ App.FrequencyResultView = Backbone.View.extend({
     render: function () {
         App.debug('App.FrequencyResultView.render()');
         this.$el.html(this.template());
-        App.debug(this.hideActionMenu);
-        App.debug(App.ActionedViewMixin);
         this.hideActionMenu();
         var progress = _.template($('#tpl-progress').html())();
         this.$('.content-text').html(progress);
@@ -104,7 +102,6 @@ App.FrequencyResultView = Backbone.View.extend({
 });
 App.FrequencyResultView = App.FrequencyResultView.extend(App.ActionedViewMixin);
 
-
 App.FrequencyResultComparisonView = Backbone.View.extend({
     config: {
         // Use sizeRange() to read, might be dynamic in the future
@@ -114,6 +111,9 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         , linkColor: "#428bca"
     },
     template: _.template($('#tpl-frequency-result-comparison-view').html()),
+    events: {
+        'click li.action-about > a': 'clickAbout'
+    },
     initialize: function (options) {
         this.render();
     },
@@ -160,8 +160,13 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
         var that = this;
         this.updateStats();
         this.$el.html(this.template());
+        this.hideActionMenu();
         this.$('.content-text').hide();
-        _.defer(function () { that.renderSvg(); });
+        _.defer(function () { 
+            that.renderSvg();
+            that.delegateEvents();  // gotta run this to register the events again
+            that.showActionMenu();
+        });
     },
     sizeRange: function () {
         return _.clone(this.config.sizeRange);
@@ -320,5 +325,13 @@ App.FrequencyResultComparisonView = Backbone.View.extend({
             return y;
         });
         return y + lastAdded;
+    },
+    clickAbout: function (evt) {
+        evt.preventDefault();
+        this.aboutView = new App.AboutView({
+            template: '#tpl-about-wordcloud-comparison-view'
+        });
+        $('body').append(this.aboutView.el);
     }
 });
+App.FrequencyResultComparisonView = App.FrequencyResultComparisonView.extend(App.ActionedViewMixin);
