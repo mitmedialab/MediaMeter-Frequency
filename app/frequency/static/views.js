@@ -42,15 +42,31 @@ App.FrequencyResultListView = App.NestedView.extend({
 
 App.FrequencyResultView = Backbone.View.extend({
     template: _.template($('#tpl-frequency-result-view').html()),
+    events: {
+        'click li.action-about > a': 'clickAbout'
+    },
     initialize: function (options) {
         App.debug('App.FrequencyResultView.initialize()');
+        App.debug(options.model);
         this.render();
     },
     render: function () {
         App.debug('App.FrequencyResultView.render()');
         this.$el.html(this.template());
+        App.debug(this.hideActionMenu);
+        App.debug(App.ActionedViewMixin);
+        this.hideActionMenu();
         var progress = _.template($('#tpl-progress').html())();
         this.$('.content-text').html(progress);
+        // update the header
+        this.$('.query-name').html(this.model.get('name'));
+        this.$('.query-name').removeClass('first-query').removeClass('second-query');      
+        if(this.model.get('name')==App.config.queryNames[0]){
+            this.$('.query-name').addClass('first-query');
+        } else {
+            this.$('.query-name').addClass('second-query');
+        }
+        // and set up callbacks
         this.listenTo(this.model.get('results').get('wordcounts'), 'request', function () {
             App.debug('Model Request');
             this.$('.content-text').show();
@@ -73,10 +89,21 @@ App.FrequencyResultView = Backbone.View.extend({
                 this.$('.content-viz').html(view.el);
                 this.$('.content-viz').show();
                 this.$('.content-text').hide();
+                this.delegateEvents();  // gotta run this to register the events again
+                this.showActionMenu();
             }
         );
+    },
+    clickAbout: function (evt) {
+        evt.preventDefault();
+        this.aboutView = new App.AboutView({
+            template: '#tpl-about-wordcloud-view'
+        });
+        $('body').append(this.aboutView.el);
     }
 });
+App.FrequencyResultView = App.FrequencyResultView.extend(App.ActionedViewMixin);
+
 
 App.FrequencyResultComparisonView = Backbone.View.extend({
     config: {
