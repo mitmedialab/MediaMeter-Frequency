@@ -65,6 +65,9 @@ App.FrequencyResultView = Backbone.View.extend({
         } else {
             this.$('.query-name').addClass('second-query');
         }
+        // add in data download links
+        var downloadUrls = [ this.model.get('results').get('wordcounts').csvUrl() ];
+        this.addDownloadMenuItems(downloadUrls, "Download Data CSV");
         // and set up callbacks
         this.listenTo(this.model.get('results').get('wordcounts'), 'request', function () {
             App.debug('Model Request');
